@@ -1,10 +1,10 @@
 import { FormEventHandler, Fragment, useEffect } from 'react';
-import GuestLayout from '@/layouts/guest';
 import { Head, useForm } from '@inertiajs/react';
 import TextInput from "@/components/form/text-input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import SwitchInput from "@/components/form/switch-input";
+import Guest from "@/layouts/guest";
 
 const Login = ({ status, canResetPassword }: { status?: string, canResetPassword: boolean }) => {
    const { data, setData, post, processing, errors, reset } = useForm({
@@ -73,5 +73,5 @@ const Login = ({ status, canResetPassword }: { status?: string, canResetPassword
    );
 }
 
-Login.layout = (page: any) => <GuestLayout>{page}</GuestLayout>;
+Login.layout = (page: any) => <Guest>{page}</Guest>;
 export default Login;
