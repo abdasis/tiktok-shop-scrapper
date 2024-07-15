@@ -119,7 +119,7 @@ class TIktokController extends Controller
 		 }
 		 
 		 //caption title dan link link untuk telegram
-		 $caption = "<b>{$response['data']['title']}</b>\nLink Produk: <a href='{$response['data']['url']}'>{$response['data']['url']}</a>👈\nProduk Milik: Kak @{$username}";
+		 $caption = "<b>{$response['data']['title']}</b>\n\nLink Produk: <a href='{$response['data']['url']}'>{$response['data']['url']}</a>👈\n\nProduk Milik: Kak @{$username} 🥰";
 		 $media[0]['caption'] = $caption;
 		 
 		 $response = Telegram::bot('mybot');
