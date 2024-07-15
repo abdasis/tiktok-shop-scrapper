@@ -18,6 +18,7 @@ Route::group(['prefix' => 'tiktok'], function () {
    Route::get('get-product', [TIktokController::class, 'getProduct'])->name('tiktok.get-product');
    Route::post('get-product', [TIktokController::class, 'productScrapper'])->name('tiktok.product-scrapper');
 });
+Route::post('webhook', [TIktokController::class, 'webhook'])->name('tiktok.webhook');
 
 Route::get('/dashboard', function () {
    return Inertia::render('dashboard');
