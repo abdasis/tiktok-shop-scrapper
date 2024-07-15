@@ -72,14 +72,13 @@ class TIktokController extends Controller
    public function webhook()
    {
 	  $response = Telegram::bot('mybot');
-	  $response_collection = $response->getWebhookUpdate()->collect();
-	  Log::info($response_collection);
-	  $pesan = $response_collection->value('text');
-	  $chat_id = $response_collection->value('chat')['id'];
-	  $username = $response_collection->value('from')['username'];
+	  $response_collection = $response->getWebhookUpdate()->collect()->sortByDesc('date')->first();
+	  $pesan = $response_collection['text'];
+	  $chat_id = $response_collection['chat']['id'];
+	  $username = $response_collection['from']['username'];
 	  //validasi pesan harus mengandung https://vt.tokopedia.com dan https://shop-id.tokopedia.com
 	  
-	  if ($response_collection->value('chat')['username'] != 'ttaffl' && $response_collection->value('message')['message_thread_id'] != 109) {
+	  if ($response_collection['chat']['username'] != 'ttaffl' && $response_collection['message']['message_thread_id'] != 109) {
 		 return false;
 	  }
 	  //validasi pesan harus mengandung https://vt.tokopedia.com dan https://shop-id.tokopedia.com
