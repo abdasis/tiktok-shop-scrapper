@@ -71,68 +71,77 @@ class TIktokController extends Controller
    
    public function webhook()
    {
-	  $response = Telegram::bot('mybot');
-	  $response_collection = $response->getWebhookUpdate()->collect()->sortByDesc('date')->first();
-	  $pesan = $response_collection['text'];
-	  $chat_id = $response_collection['chat']['id'];
-	  $username = $response_collection['from']['username'];
-	  //validasi pesan harus mengandung https://vt.tokopedia.com dan https://shop-id.tokopedia.com
-	  
-	  if ($response_collection['chat']['username'] != 'ttaffl' && $response_collection['message']['message_thread_id'] != 109) {
-		 return false;
-	  }
-	  //validasi pesan harus mengandung https://vt.tokopedia.com dan https://shop-id.tokopedia.com
-	  if (strpos($pesan, "https://vt.tokopedia.com") !== false && strpos($pesan, "https://shop-id.tokopedia.com") !== false) {
-		 $response->sendMessage([
-			'chat_id' => "-1002243059927",
-			'message_thread_id' => 109,
-			'text' => 'Maaf kak @'.$username.', link produk yang kamu kirimkan tidak sesuai dengan ketentuan. Silahkan kirimkan pesan yang sesuai. contoh https://vt.tokopedia.com/t/ZSYsLAQ6S/',
-			'parse_mode' => 'HTML'
-		 ]);
-		 return false;
-	  }
-	  
-	  $response->sendMessage([
-		 'chat_id' => "-1002243059927",
-		 'message_thread_id' => 109,
-		 'text' => 'Halo kak @'.$username.', Produk yang kamu kirimkan sedang saya proses, silahkan sambil di cek di Produk Terlaris ya 🥰',
-		 'parse_mode' => 'HTML'
-	  ]);
-	  
 	  try {
-		 $url = $pesan;
-		 $response = Http::post('http://localhost:3333/tikthop-scrapper', [
-			'url' => $url
-		 ])->collect();
-		 
-		 $image_links = $response['data']['imgLinks'];
-		 
-		 $media = [];
-		 foreach ($image_links as $image_link) {
-			$type = [
-			   'type' => 'photo',
-			   'media' => $image_link,
-			   'parse_mode' => 'HTML'
-			];
-			array_push($media, $type);
-		 }
-		 
-		 //caption title dan link link untuk telegram
-		 $caption = "<b>{$response['data']['title']}</b>\n\nLink Produk: <a href='{$response['data']['url']}'>{$response['data']['url']}</a>👈\n\nProduk Milik: Kak @{$username} 🥰";
-		 $media[0]['caption'] = $caption;
-		 
 		 $response = Telegram::bot('mybot');
-		 $response->sendMediaGroup([
-			'chat_id' => "-1002243059927",
-			'message_thread_id' => 3,
-			'media' => json_encode($media),
-		 ]);
+		 $response_collection = $response->getWebhookUpdate();
+		 $chat_colleciton = collect($response_collection->getMessage())->sortByDesc('date');
+		 $pesan = $chat_colleciton['text'];
+		 $username = $chat_colleciton['from']['username'];
+		 if (isset($chat_colleciton['message_thread_id'])) {
+			$tread_id = $chat_colleciton['message_thread_id'];
+			if ($username === 'ttaffl' && $tread_id != 109) {
+			   $response->sendMessage([
+				  'chat_id' => "-1002243059927",
+				  'message_thread_id' => $tread_id,
+				  'text' => "Maaf kak @{$username}, untuk melakukan request gambar produk, kirim linknya di topik <b>Request Produk</b> Ya, Terima kasih sudah mengikuti aturan grup ini"
+			   ]);
+			   return false;
+			}
+			if (strpos($pesan, "https://vt.tokopedia.com") !== false && strpos($pesan, "https://shop-id.tokopedia.com") !== false) {
+			   $response->sendMessage([
+				  'chat_id' => "-1002243059927",
+				  'message_thread_id' => 3,
+				  'text' => 'Maaf kak @'.$username.', link produk yang kamu kirimkan tidak sesuai dengan ketentuan. Silahkan kirimkan pesan yang sesuai. contoh https://vt.tokopedia.com/t/ZSYsLAQ6S/',
+				  'parse_mode' => 'HTML'
+			   ]);
+			   return false;
+			} else {
+			   
+			   $response->sendMessage([
+				  'chat_id' => "-1002243059927",
+				  'message_thread_id' => 109,
+				  'text' => "Halo kak @$username product yang kamu kirimkan sedang saya proses, silahkan tunggu dan sambil pantau topik Produk Terlaris ya 🥰",
+				  'parse_mode' => 'HTML'
+			   ]);
+			   $url = $pesan;
+			   $response = Http::post('http://localhost:3333/tikthop-scrapper', [
+				  'url' => $url
+			   ])->collect();
+			   
+			   $image_links = $response['data']['imgLinks'];
+			   
+			   $media = [];
+			   foreach ($image_links as $image_link) {
+				  $type = [
+					 'type' => 'photo',
+					 'media' => $image_link,
+					 'parse_mode' => 'HTML'
+				  ];
+				  array_push($media, $type);
+			   }
+			   
+			   //caption title dan link link untuk telegram
+			   $caption = "<b>{$response['data']['title']}</b>\n\nLink Produk: <a href='{$response['data']['url']}'>{$response['data']['url']}</a>👈\n\nDibuat Oleh: Kak @{$username} 🥰";
+			   $media[0]['caption'] = $caption;
+			   
+			   $response = Telegram::bot('mybot');
+			   $response->sendMediaGroup([
+				  'chat_id' => "-1002243059927",
+				  'message_thread_id' => 3,
+				  'media' => json_encode($media),
+			   ]);
+			}
+		 }
+		 else{
+			Log::info('Diluar forums');
+		 }
+		 return true;
 		 
-		 return redirect()->back()->with('success', 'Product has been scrapped successfully');
 	  } catch (Exception $exception) {
-		 return redirect()->back()->with('error', $exception->getMessage());
+		 report($exception->getMessage());
+	  } finally {
+		 return true;
 	  }
-	  
    }
    
    private function validateMessage(string $message): bool
