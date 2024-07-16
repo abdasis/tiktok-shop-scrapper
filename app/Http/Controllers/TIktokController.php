@@ -75,13 +75,12 @@ class TIktokController extends Controller
 		 $response = Telegram::bot('mybot');
 		 $response_collection = $response->getWebhookUpdate();
 		 $chat_colleciton = collect($response_collection->getMessage())->sortByDesc('date');
-		 Log::info($chat_colleciton);
-		 $pesan = $chat_colleciton['text'];
-		 $chat_id = $chat_colleciton['chat']['id'];
-		 $username = $chat_colleciton['reply_to_message']['from']['username'];
-		 $first_name = $chat_colleciton['from']['first_name'];
-		 $last_name = $chat_colleciton['from']['last_name'];
-		 $full_name = $first_name . ' ' . $last_name;
+		 $pesan = $chat_colleciton['text'] ?? null;
+		 $chat_id = $chat_colleciton['chat']['id'] ?? null;
+		 $username = $chat_colleciton['reply_to_message']?->from?->username ?? null;
+		 $first_name = $chat_colleciton['from']?->first_name ?? null;
+		 $last_name = $chat_colleciton['from']?->last_name ?? null;
+		 $full_name = $first_name ? $first_name . ' ' . ($last_name ?? '') : null;
 		 if (isset($chat_colleciton['message_thread_id'])) {
 			$tread_id = $chat_colleciton['message_thread_id'];
 			if (strpos($pesan, "https://vt.tokopedia.com") === false && strpos($pesan, "https://shop-id.tokopedia.com") === false) {
@@ -91,7 +90,7 @@ class TIktokController extends Controller
 				  'text' => 'Maaf kak '.$first_name.', link produk yang kamu kirimkan tidak sesuai dengan ketentuan. Silahkan kirimkan link product yang sesuai. contoh https://vt.tokopedia.com/t/ZSYsLAQ6S/',
 				  'parse_mode' => 'HTML'
 			   ]);
-			   return false;
+			   return true;
 			} else {
 			   if ($tread_id !== 109) {
 				  $response->sendMessage([
@@ -99,6 +98,7 @@ class TIktokController extends Controller
 					 'message_thread_id' => $tread_id,
 					 'text' => 'Maaf kak '.$first_name.', kamu mengirim pesan product di topik yang salah, silahkan kirim ulang di topik <b>Request Product </b>',
 				  ]);
+				  return true;
 			   }
 			   $response->sendMessage([
 				  'chat_id' => $chat_id,
@@ -132,13 +132,11 @@ class TIktokController extends Controller
 			   ]);
 			   return true;
 			}
-		 }
-		 else{
+		 } else {
 			Log::info('Diluar forums');
 			return true;
 		 }
 		 return true;
-		 
 	  } catch (Exception $exception) {
 		 report($exception->getMessage());
 		 return true;
