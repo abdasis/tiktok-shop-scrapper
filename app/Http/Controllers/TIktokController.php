@@ -75,12 +75,12 @@ class TIktokController extends Controller
 		 $response = Telegram::bot('mybot');
 		 $response_collection = $response->getWebhookUpdate();
 		 $chat_colleciton = collect($response_collection->getMessage())->sortByDesc('date');
-		 $pesan = $chat_colleciton['text'] ?? null;
-		 $chat_id = $chat_colleciton['chat']['id'] ?? null;
-		 $username = $chat_colleciton['reply_to_message']?->from?->username ?? null;
-		 $first_name = $chat_colleciton['from']?->first_name ?? null;
-		 $last_name = $chat_colleciton['from']?->last_name ?? null;
-		 $full_name = $first_name ? $first_name . ' ' . ($last_name ?? '') : null;
+		 $pesan = $chat_colleciton['text'] ?? '';
+		 $chat_id = $chat_colleciton['chat']['id'] ?? '';
+		 $username = $chat_colleciton['reply_to_message']['from']['username'] ?? '';
+		 $first_name = $chat_colleciton['from']['first_name'] ?? '';
+		 $last_name = $chat_colleciton['from']['last_name'] ?? '';
+		 $full_name = $first_name.' '.$last_name ?? '';
 		 if (isset($chat_colleciton['message_thread_id'])) {
 			$tread_id = $chat_colleciton['message_thread_id'];
 			if (strpos($pesan, "https://vt.tokopedia.com") === false && strpos($pesan, "https://shop-id.tokopedia.com") === false) {
@@ -121,7 +121,7 @@ class TIktokController extends Controller
 				  array_push($media, $type);
 			   }
 			   //caption title dan link link untuk telegram
-			   $caption = "<b>{$response['data']['title']}</b>\n\nLink Produk: <a href='{$response['data']['url']}'>{$response['data']['url']}</a>👈\n\nDibuat oleh: Kak $full_name 🥰";
+			   $caption = "<code>{$response['data']['title']}</code>\n\nLink Produk: <a href='{$response['data']['url']}'>{$response['data']['url']}</a>👈\n\nDibuat oleh: Kak $full_name 🥰";
 			   $media[0]['caption'] = $caption;
 			   
 			   $response = Telegram::bot('mybot');
